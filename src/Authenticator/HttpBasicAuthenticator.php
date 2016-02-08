@@ -169,7 +169,8 @@ class HttpBasicAuthenticator implements AuthenticatorInterface
         $environmentAuthParamsResolver = function ($serverParams) {
             if (!array_key_exists($this->environment, $serverParams)) {
                 throw new \RuntimeException(sprintf(
-                    'Param %s is not set', $this->environment
+                    'Param %s is not set',
+                    $this->environment
                 ));
             }
 
