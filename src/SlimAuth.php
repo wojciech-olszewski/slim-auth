@@ -86,7 +86,7 @@ class SlimAuth
             throw new \RuntimeException('Option "authenticator" is required');
         }
 
-        if (!is_a($options['authenticator'], 'Slim\Authenticator\AuthenticatorInterface')) {
+        if (!$options['authenticator'] instanceof AuthenticatorInterface) {
             throw new \InvalidArgumentException(sprintf(
                 'Option "authenticator" should be instance of Slim\Authenticator\AuthenticatorInterface, %s given',
                 get_class($options['authenticator'])
@@ -118,7 +118,7 @@ class SlimAuth
      */
     private function addRule($rule)
     {
-        if (!is_a($rule, 'Slim\Rule\RuleInterface')) {
+        if (!$rule instanceof RuleInterface) {
             throw new \InvalidArgumentException(sprintf(
                 'Option "authenticator" should be instance of Slim\Rule\RuleInterface, %s given',
                 get_class($rule)

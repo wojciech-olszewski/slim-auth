@@ -105,7 +105,7 @@ class HttpBasicAuthenticator implements AuthenticatorInterface
             throw new \RuntimeException('Option "strategy" is required');
         }
 
-        if (!is_a($options['strategy'], 'Slim\Authenticator\HttpBasic\StrategyInterface')) {
+        if (!$options['strategy'] instanceof StrategyInterface) {
             throw new \InvalidArgumentException(sprintf(
                 'Option "strategy" should be instance of Slim\Authenticator\HttpBasic\StrategyInterface, %s given',
                 get_class($options['strategy'])

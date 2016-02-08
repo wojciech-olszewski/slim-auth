@@ -91,7 +91,7 @@ class SlimAuthSpec extends ObjectBehavior
         return [
             'containsInstanceOf' => function ($subject, $interface) {
                 return [] !== array_filter($subject, function ($item) use ($interface) {
-                    return is_a($item, $interface);
+                    return $item instanceof $interface;
                 });
             },
         ];
