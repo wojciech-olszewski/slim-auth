@@ -130,7 +130,6 @@ class SlimAuth
 
     /**
      * @param array $options
-     *
      */
     private function setOnUnauthorizedCallback(array $options)
     {
@@ -151,6 +150,7 @@ class SlimAuth
      * @param RequestInterface      $request
      * @param ResponseInterface     $response
      * @param UnauthorizedException $e
+     * @return ResponseInterface
      */
     private function onUnauthorized(RequestInterface $request, ResponseInterface $response, UnauthorizedException $e)
     {
