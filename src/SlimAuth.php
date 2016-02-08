@@ -5,6 +5,7 @@ namespace Slim;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Authenticator\AuthenticatorInterface;
+use Slim\Exception\UnauthorizedException;
 use Slim\Rule\MethodRule;
 use Slim\Rule\PathRule;
 use Slim\Rule\RuleInterface;
@@ -22,6 +23,11 @@ class SlimAuth
     private $rules = [];
 
     /**
+     * @var callable
+     */
+    private $onUnauthorizedCallback;
+
+    /**
      * @param array $options
      */
     public function __construct(array $options = [])
@@ -36,7 +42,13 @@ class SlimAuth
      */
     public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
     {
-        return $response;
+        try {
+            $this->authenticator->authenticate($request);
+        } catch (UnauthorizedException $e) {
+            return $this->onUnauthorized($request, $response, $e);
+        }
+
+        return $next($request, $response);
     }
 
     /**
@@ -62,6 +74,7 @@ class SlimAuth
     {
         $this->setAuthenticator($options);
         $this->setRules($options);
+        $this->setOnUnauthorizedCallback($options);
     }
 
     /**
@@ -113,5 +126,44 @@ class SlimAuth
         }
 
         $this->rules[] = $rule;
+    }
+
+    /**
+     * @param array $options
+     *
+     */
+    private function setOnUnauthorizedCallback(array $options)
+    {
+        if (!array_key_exists('onUnauthorized', $options)) {
+            return;
+        }
+
+        if (!is_callable($options['onUnauthorized'])) {
+            throw new \InvalidArgumentException(sprintf(
+                'Option "onUnauthorized should be callable"'
+            ));
+        }
+
+        $this->onUnauthorizedCallback = $options['onUnauthorized'];
+    }
+
+    /**
+     * @param RequestInterface      $request
+     * @param ResponseInterface     $response
+     * @param UnauthorizedException $e
+     */
+    private function onUnauthorized(RequestInterface $request, ResponseInterface $response, UnauthorizedException $e)
+    {
+        $response = $this->authenticator->onUnauthorized($request, $response, $e);
+        if (null === $this->onUnauthorizedCallback) {
+            return $response;
+        }
+
+        $unauthorizedCallbackResult = $this->onUnauthorizedCallback($request, $response, $e);
+        if ($unauthorizedCallbackResult instanceof ResponseInterface) {
+            return $unauthorizedCallbackResult;
+        }
+
+        return $response;
     }
 }

@@ -36,7 +36,7 @@ class SlimAuthSpec extends ObjectBehavior
 
     public function it_require_authenticator_in_options()
     {
-        $this->shouldThrow('\RuntimeException')->duringInstantiation();;
+        $this->shouldThrow('\RuntimeException')->duringInstantiation();
     }
 
     public function it_require_authenticator_interface_in_options()
@@ -56,6 +56,17 @@ class SlimAuthSpec extends ObjectBehavior
             'rules' => [
                 new \stdClass()
             ]
+        ]);
+
+        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+    }
+
+    public function it_require_callable_on_unauthorized_callback($authenticator)
+    {
+        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
+        $this->beConstructedWith([
+            'authenticator' => $authenticator,
+            'onUnauthorized' => new \stdClass()
         ]);
 
         $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
