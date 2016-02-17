@@ -207,7 +207,7 @@ class SlimAuth
             return $response;
         }
 
-        $unauthorizedCallbackResult = $this->onUnauthorizedCallback($request, $response, $e);
+        $unauthorizedCallbackResult = call_user_func_array($this->onUnauthorizedCallback, [$request, $response, $e]);
         if ($unauthorizedCallbackResult instanceof ResponseInterface) {
             return $unauthorizedCallbackResult;
         }
@@ -223,7 +223,7 @@ class SlimAuth
     private function onSuccess(RequestInterface $request, ResponseInterface $response, $data)
     {
         if (null !== $this->onSuccessCallback) {
-            $this->onSuccessCallback($request, $response, $data);
+            call_user_func_array($this->onSuccessCallback, [$request, $response, $data]);
         }
     }
 }
