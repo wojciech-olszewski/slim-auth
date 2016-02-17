@@ -45,7 +45,7 @@ class PathRule implements RuleInterface
      */
     public function handle(RequestInterface $request)
     {
-        $path = $request->getUri()->getPath();
+        $path = $this->normalizePath($request->getUri()->getPath());
 
         if ($this->shouldExclude($path)) {
             return false;
