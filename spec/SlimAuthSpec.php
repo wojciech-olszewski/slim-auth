@@ -6,6 +6,7 @@ use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Slim\Authenticator\AuthenticatorInterface;
 
 class SlimAuthSpec extends ObjectBehavior
 {
@@ -19,14 +20,14 @@ class SlimAuthSpec extends ObjectBehavior
         $this->shouldHaveType('Slim\SlimAuth');
     }
 
-    public function it_is_invocable($authenticator, $request, $response)
+    public function it_is_invocable(
+        AuthenticatorInterface $authenticator,
+        RequestInterface $request,
+        ResponseInterface $response)
     {
-        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
         $this->beConstructedWith([
             'authenticator' => $authenticator
         ]);
-        $request->beADoubleOf('Psr\Http\Message\RequestInterface');
-        $response->beADoubleOf('Psr\Http\Message\ResponseInterface');
         $next = function (RequestInterface $request, ResponseInterface $response) {
             return $response;
         };
@@ -36,7 +37,9 @@ class SlimAuthSpec extends ObjectBehavior
 
     public function it_require_authenticator_in_options()
     {
-        $this->shouldThrow('\RuntimeException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \RuntimeException('Option "authenticator" is required'))
+            ->duringInstantiation();
     }
 
     public function it_require_authenticator_interface_in_options()
@@ -50,9 +53,8 @@ class SlimAuthSpec extends ObjectBehavior
             ->duringInstantiation();
     }
 
-    public function it_require_rule_interfaces_in_options($authenticator)
+    public function it_require_rule_interfaces_in_options(AuthenticatorInterface $authenticator)
     {
-        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
         $this->beConstructedWith([
             'authenticator' => $authenticator,
             'rules' => [
@@ -65,9 +67,21 @@ class SlimAuthSpec extends ObjectBehavior
             ->duringInstantiation();
     }
 
-    public function it_require_callable_on_unauthorized_callback($authenticator)
+    public function it_has_default_rules(AuthenticatorInterface $authenticator)
     {
-        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
+        $this->beConstructedWith([
+            'authenticator' => $authenticator
+        ]);
+
+        $rules = $this->getRules();
+
+        $rules->shouldBeArray();
+        $rules->shouldContainsInstanceOf('Slim\Rule\PathRule');
+        $rules->shouldContainsInstanceOf('Slim\Rule\MethodRule');
+    }
+
+    public function it_require_callable_on_unauthorized_callback(AuthenticatorInterface $authenticator)
+    {
         $this->beConstructedWith([
             'authenticator' => $authenticator,
             'onUnauthorized' => new \stdClass()
@@ -78,9 +92,8 @@ class SlimAuthSpec extends ObjectBehavior
             ->duringInstantiation();
     }
 
-    public function it_require_callable_on_success_callback($authenticator)
+    public function it_require_callable_on_success_callback(AuthenticatorInterface $authenticator)
     {
-        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
         $this->beConstructedWith([
             'authenticator' => $authenticator,
             'onSuccess' => new \stdClass()
@@ -89,20 +102,6 @@ class SlimAuthSpec extends ObjectBehavior
         $this
             ->shouldThrow(new \InvalidArgumentException('Option "onSuccess" should be callable, object given'))
             ->duringInstantiation();
-    }
-
-    public function it_has_default_options($authenticator)
-    {
-        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
-        $this->beConstructedWith([
-            'authenticator' => $authenticator
-        ]);
-
-        $rules = $this->getRules();
-
-        $rules->shouldBeArray();
-        $rules->shouldContainsInstanceOf('Slim\Rule\PathRule');
-        $rules->shouldContainsInstanceOf('Slim\Rule\MethodRule');
     }
 
     public function getMatchers()
