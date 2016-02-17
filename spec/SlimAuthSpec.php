@@ -45,7 +45,9 @@ class SlimAuthSpec extends ObjectBehavior
             'authenticator' => new \stdClass()
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "authenticator" should be instance of Slim\Authenticator\AuthenticatorInterface, stdClass given'))
+            ->duringInstantiation();
     }
 
     public function it_require_rule_interfaces_in_options($authenticator)
@@ -58,7 +60,9 @@ class SlimAuthSpec extends ObjectBehavior
             ]
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Each option in "rules" array should be instance of Slim\Rule\RuleInterface, stdClass given'))
+            ->duringInstantiation();
     }
 
     public function it_require_callable_on_unauthorized_callback($authenticator)
@@ -69,7 +73,22 @@ class SlimAuthSpec extends ObjectBehavior
             'onUnauthorized' => new \stdClass()
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "onUnauthorized" should be callable, object given'))
+            ->duringInstantiation();
+    }
+
+    public function it_require_callable_on_success_callback($authenticator)
+    {
+        $authenticator->beADoubleOf('Slim\Authenticator\AuthenticatorInterface');
+        $this->beConstructedWith([
+            'authenticator' => $authenticator,
+            'onSuccess' => new \stdClass()
+        ]);
+
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "onSuccess" should be callable, object given'))
+            ->duringInstantiation();
     }
 
     public function it_has_default_options($authenticator)

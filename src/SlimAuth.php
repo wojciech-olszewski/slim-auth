@@ -28,6 +28,11 @@ class SlimAuth
     private $onUnauthorizedCallback;
 
     /**
+     * @var callable
+     */
+    private $onSuccessCallback;
+
+    /**
      * @param array $options
      */
     public function __construct(array $options = [])
@@ -39,14 +44,21 @@ class SlimAuth
      * @param RequestInterface  $request
      * @param ResponseInterface $response
      * @param callable          $next
+     * @return ResponseInterface
      */
     public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
     {
+        /**
+         * @todo check if should authenticate according to the rules
+         */
+
         try {
-            $this->authenticator->authenticate($request);
+            $data = $this->authenticator->authenticate($request);
         } catch (UnauthorizedException $e) {
             return $this->onUnauthorized($request, $response, $e);
         }
+
+        $this->onSuccess($request, $response, $data);
 
         return $next($request, $response);
     }
@@ -75,6 +87,7 @@ class SlimAuth
         $this->setAuthenticator($options);
         $this->setRules($options);
         $this->setOnUnauthorizedCallback($options);
+        $this->setOnSuccessCallback($options);
     }
 
     /**
@@ -120,7 +133,7 @@ class SlimAuth
     {
         if (!$rule instanceof RuleInterface) {
             throw new \InvalidArgumentException(sprintf(
-                'Option "authenticator" should be instance of Slim\Rule\RuleInterface, %s given',
+                'Each option in "rules" array should be instance of Slim\Rule\RuleInterface, %s given',
                 get_class($rule)
             ));
         }
@@ -139,11 +152,31 @@ class SlimAuth
 
         if (!is_callable($options['onUnauthorized'])) {
             throw new \InvalidArgumentException(sprintf(
-                'Option "onUnauthorized should be callable"'
+                'Option "onUnauthorized" should be callable, %s given',
+                gettype($options['onUnauthorized'])
             ));
         }
 
         $this->onUnauthorizedCallback = $options['onUnauthorized'];
+    }
+
+    /**
+     * @param array $options
+     */
+    private function setOnSuccessCallback(array $options)
+    {
+        if (!array_key_exists('onSuccess', $options)) {
+            return;
+        }
+
+        if (!is_callable($options['onSuccess'])) {
+            throw new \InvalidArgumentException(sprintf(
+                'Option "onSuccess" should be callable, %s given',
+                gettype($options['onSuccess'])
+            ));
+        }
+
+        $this->onSuccessCallback = $options['onSuccess'];
     }
 
     /**
@@ -165,5 +198,17 @@ class SlimAuth
         }
 
         return $response;
+    }
+
+    /**
+     * @param RequestInterface  $request
+     * @param ResponseInterface $response
+     * @param mixed             $data
+     */
+    private function onSuccess(RequestInterface $request, ResponseInterface $response, $data)
+    {
+        if (null !== $this->onSuccessCallback) {
+            $this->onSuccessCallback($request, $response, $data);
+        }
     }
 }
