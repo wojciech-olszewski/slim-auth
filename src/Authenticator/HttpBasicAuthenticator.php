@@ -46,7 +46,9 @@ class HttpBasicAuthenticator implements AuthenticatorInterface
         list($user, $password) = $this->resolveCredentials($request);
 
         try {
-            return $this->strategy->authenticate($user, $password);
+            $this->strategy->authenticate($user, $password);
+
+            return $user;
         } catch (UnauthorizedException $e) {
             throw new UnauthorizedException('Unable to authenticate', null, $e);
         }

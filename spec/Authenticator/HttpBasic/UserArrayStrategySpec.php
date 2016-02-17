@@ -4,6 +4,7 @@ namespace spec\Slim\Authenticator\HttpBasic;
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Slim\Exception\UnauthorizedException;
 
 class UserArrayStrategySpec extends ObjectBehavior
 {
@@ -20,7 +21,9 @@ class UserArrayStrategySpec extends ObjectBehavior
 
     public function it_should_throw_exception_when_user_does_not_exists()
     {
-        $this->shouldThrow('Slim\Exception\UnauthorizedException')->duringAuthenticate('user', 'password');
+        $this
+            ->shouldThrow(new UnauthorizedException('User "user" does not exists'))
+            ->duringAuthenticate('user', 'password');
     }
 
     public function it_should_throw_exception_with_invalid_password()
@@ -29,7 +32,9 @@ class UserArrayStrategySpec extends ObjectBehavior
             'user' => 'password'
         ]);
 
-        $this->shouldThrow('Slim\Exception\UnauthorizedException')->duringAuthenticate('user', 'wrong_password');
+        $this
+            ->shouldThrow(new UnauthorizedException('Passwords for user "user" do not match'))
+            ->duringAuthenticate('user', 'wrong_password');
     }
 
     public function it_return_true_with_valid_credentials()

@@ -25,7 +25,9 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
 
     public function it_require_strategy_in_options()
     {
-        $this->shouldThrow('\RuntimeException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \RuntimeException('Option "strategy" is required'))
+            ->duringInstantiation();
     }
 
     public function it_require_strategy_interface_in_options()
@@ -34,7 +36,9 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             'strategy' => new \stdClass()
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "strategy" should be instance of Slim\Authenticator\HttpBasic\StrategyInterface, stdClass given'))
+            ->duringInstantiation();
     }
 
     public function it_has_default_options($strategy)
@@ -56,7 +60,9 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             'environment' => 123
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "environment" should be string, integer given'))
+            ->duringInstantiation();
     }
 
     public function it_require_realm_string_in_options($strategy)
@@ -67,7 +73,9 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             'realm' => 123
         ]);
 
-        $this->shouldThrow('\InvalidArgumentException')->duringInstantiation();
+        $this
+            ->shouldThrow(new \InvalidArgumentException('Option "realm" should be string, integer given'))
+            ->duringInstantiation();
     }
 
     public function it_throw_exception_if_unable_to_resolve_credentials($strategy)
@@ -78,10 +86,12 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
         ]);
         $request = $this->createRequest();
 
-        $this->shouldThrow('\RuntimeException')->duringAuthenticate($request);
+        $this
+            ->shouldThrow(new \RuntimeException('Unable to resolve credentials'))
+            ->duringAuthenticate($request);
     }
 
-    public function it_return_true_with_valid_credentials_via_php_auth_params()
+    public function it_authenticate_with_valid_credentials_via_php_auth_params()
     {
         $this->beConstructedWith([
             'strategy' => new UserArrayStrategy([
@@ -96,10 +106,10 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             self::TYPE_PHP_AUTH
         );
 
-        $this->authenticate($request)->shouldReturn(true);
+        $this->authenticate($request)->shouldReturn('user');
     }
 
-    public function it_return_true_with_valid_credentials_via_environment_params()
+    public function it_authenticate_with_valid_credentials_via_environment_params()
     {
         $this->beConstructedWith([
             'strategy' => new UserArrayStrategy([
@@ -114,7 +124,7 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             self::TYPE_ENVIRONMENT
         );
 
-        $this->authenticate($request)->shouldReturn(true);
+        $this->authenticate($request)->shouldReturn('user');
     }
 
     public function it_throw_unauthorized_exception_with_invalid_credentials()
@@ -132,7 +142,9 @@ class HttpBasicAuthenticatorSpec extends ObjectBehavior
             self::TYPE_PHP_AUTH
         );
 
-        $this->shouldThrow('\Slim\Exception\UnauthorizedException')->duringAuthenticate($request);
+        $this
+            ->shouldThrow(new UnauthorizedException('Unable to authenticate'))
+            ->duringAuthenticate($request);
     }
 
     public function it_should_return_valid_response_on_unauthorized()
