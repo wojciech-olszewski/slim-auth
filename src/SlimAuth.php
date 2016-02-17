@@ -48,9 +48,9 @@ class SlimAuth
      */
     public function __invoke(RequestInterface $request, ResponseInterface $response, callable $next)
     {
-        /**
-         * @todo check if should authenticate according to the rules
-         */
+        if (!$this->isAuthenticable($request)) {
+            return $next($request, $response);
+        }
 
         try {
             $data = $this->authenticator->authenticate($request);
@@ -177,6 +177,21 @@ class SlimAuth
         }
 
         $this->onSuccessCallback = $options['onSuccess'];
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @return bool
+     */
+    private function isAuthenticable(RequestInterface $request)
+    {
+        foreach ($this->rules as $rule) {
+            if ($rule->handle($request)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

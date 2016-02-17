@@ -7,6 +7,11 @@ use Prophecy\Argument;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Authenticator\AuthenticatorInterface;
+use Slim\Http\Headers;
+use Slim\Http\Request;
+use Slim\Http\RequestBody;
+use Slim\Http\Uri;
+use Slim\Rule\PathRule;
 
 class SlimAuthSpec extends ObjectBehavior
 {
@@ -22,12 +27,12 @@ class SlimAuthSpec extends ObjectBehavior
 
     public function it_is_invocable(
         AuthenticatorInterface $authenticator,
-        RequestInterface $request,
-        ResponseInterface $response)
-    {
+        ResponseInterface $response
+    ) {
         $this->beConstructedWith([
             'authenticator' => $authenticator
         ]);
+        $request = $this->createRequest();
         $next = function (RequestInterface $request, ResponseInterface $response) {
             return $response;
         };
@@ -104,6 +109,43 @@ class SlimAuthSpec extends ObjectBehavior
             ->duringInstantiation();
     }
 
+    public function it_call_authenticator_when_rules_handle_request(
+        AuthenticatorInterface $authenticator,
+        ResponseInterface $response
+    ) {
+        $this->beConstructedWith([
+            'authenticator' => $authenticator,
+        ]);
+        $request = $this->createRequest();
+        $authenticator->authenticate($request)->shouldBeCalled();
+        $next = function (RequestInterface $request, ResponseInterface $response) {
+            return $response;
+        };
+
+        $this($request, $response, $next)->shouldReturnAnInstanceOf('Psr\Http\Message\ResponseInterface');
+    }
+
+    public function it_does_not_call_authenticator_when_rules_do_not_handle_request(
+        AuthenticatorInterface $authenticator,
+        ResponseInterface $response
+    ) {
+        $this->beConstructedWith([
+            'authenticator' => $authenticator,
+            'rules' => [
+                new PathRule([
+                    'excluded' => ['/']
+                ])
+            ]
+        ]);
+        $request = $this->createRequest();
+        $authenticator->authenticate($request)->shouldNotBeCalled();
+        $next = function (RequestInterface $request, ResponseInterface $response) {
+            return $response;
+        };
+
+        $this($request, $response, $next)->shouldReturnAnInstanceOf('Psr\Http\Message\ResponseInterface');
+    }
+
     public function getMatchers()
     {
         return [
@@ -113,5 +155,20 @@ class SlimAuthSpec extends ObjectBehavior
                 });
             },
         ];
+    }
+
+    /**
+     * @return Request
+     */
+    private function createRequest()
+    {
+        return new Request(
+            'GET',
+            Uri::createFromString('http://example.org'),
+            new Headers(),
+            [],
+            [],
+            new RequestBody()
+        );
     }
 }
