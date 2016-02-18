@@ -186,12 +186,12 @@ class SlimAuth
     private function isAuthenticable(RequestInterface $request)
     {
         foreach ($this->rules as $rule) {
-            if ($rule->handle($request)) {
-                return true;
+            if (!$rule->handle($request)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     /**

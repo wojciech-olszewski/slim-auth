@@ -12,6 +12,9 @@ use Slim\Http\Request;
 use Slim\Http\RequestBody;
 use Slim\Http\Uri;
 use Slim\Rule\PathRule;
+use Slim\Rule\RuleInterface;
+use SlimTest\Rule\FalsyRule;
+use SlimTest\Rule\TruthyRule;
 
 class SlimAuthSpec extends ObjectBehavior
 {
@@ -115,6 +118,11 @@ class SlimAuthSpec extends ObjectBehavior
     ) {
         $this->beConstructedWith([
             'authenticator' => $authenticator,
+            'rules' => [
+                new TruthyRule(),
+                new TruthyRule(),
+                new TruthyRule()
+            ]
         ]);
         $request = $this->createRequest();
         $authenticator->authenticate($request)->shouldBeCalled();
@@ -132,9 +140,9 @@ class SlimAuthSpec extends ObjectBehavior
         $this->beConstructedWith([
             'authenticator' => $authenticator,
             'rules' => [
-                new PathRule([
-                    'excluded' => ['/']
-                ])
+                new TruthyRule(),
+                new FalsyRule(),
+                new FalsyRule()
             ]
         ]);
         $request = $this->createRequest();

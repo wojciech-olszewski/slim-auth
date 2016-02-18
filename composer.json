@@ -23,7 +23,8 @@
   },
   "autoload": {
     "psr-4": {
-      "Slim\\": "src"
+      "Slim\\": "src",
+      "SlimTest\\": "test"
     }
   }
 }
