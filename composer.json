@@ -26,5 +26,13 @@
       "Slim\\": "src",
       "SlimTest\\": "test"
     }
+  },
+  "scripts": {
+    "ci": [
+      "@test",
+      "@cs"
+    ],
+    "test": "bin/phpspec run --verbose",
+    "cs": "bin/phpcs -p --extensions=php --standard=PSR2 --error-severity=1 --warning-severity=1 ./src"
   }
 }

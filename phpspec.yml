@@ -1,4 +1,4 @@
 suites:
-    acme_suite:
+    slim_suite:
         namespace: Slim
         psr4_prefix: Slim
