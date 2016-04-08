@@ -1,4 +1,4 @@
-# SlimAuth
+# SlimAuth [![Build Status](https://travis-ci.org/wojciech-olszewski/slim-auth.svg?branch=master)](https://travis-ci.org/wojciech-olszewski/slim-auth)
 SlimAuth is a middleware for [Slim Framework](http://www.slimframework.com/) which allows to handle authentication process using various authenticators. It is easily configurable and adjustable library. Currently implemented authenticators are:
 * [Http Basic](https://en.wikipedia.org/wiki/Basic_access_authentication) (HttpBasicAuthenticator)
 * [JWT](http://jwt.io/) (JsonWebTokenAuthenticator) 
