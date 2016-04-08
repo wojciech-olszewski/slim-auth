@@ -6,6 +6,7 @@ use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Token;
+use Lcobucci\JWT\ValidationData;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Exception\UnauthorizedException;
@@ -21,6 +22,11 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
      * @var Signer
      */
     private $signer;
+
+    /**
+     * @var ValidationData
+     */
+    private $validationData;
 
     /**
      * @var string
@@ -43,7 +49,12 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
         $token = $this->resolveToken($request);
 
         try {
-            return $this->decodeToken($token);
+            $decodedToken = $this->decodeToken($token);
+
+            $this->verifyToken($decodedToken);
+            $this->validateToken($decodedToken);
+
+            return $decodedToken;
         } catch (UnauthorizedException $e) {
             throw new UnauthorizedException('Unable to authenticate', null, $e);
         }
@@ -64,6 +75,7 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
     {
         $this->setSecret($options);
         $this->setSigner($options);
+        $this->setValidationData($options);
         $this->setEnvironment($options);
     }
 
@@ -108,6 +120,25 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
     /**
      * @param array $options
      */
+    private function setValidationData(array $options)
+    {
+        if (!array_key_exists('validationData', $options)) {
+            throw new \RuntimeException('Option "validationData" is required');
+        }
+
+        if (!$options['validationData'] instanceof ValidationData) {
+            throw new \InvalidArgumentException(sprintf(
+                'Option "validationData" should be Lcobucci\JWT\ValidationData, %s given',
+                get_class($options['validationData'])
+            ));
+        }
+
+        $this->validationData = $options['validationData'];
+    }
+
+    /**
+     * @param array $options
+     */
     private function setEnvironment(array $options)
     {
         if (!array_key_exists('environment', $options)) {
@@ -146,18 +177,13 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
     private function decodeToken($token)
     {
         try {
-            $decodedToken = (new Parser())->parse($token);
-
-            if (false === $this->isVerified($decodedToken)) {
-                throw new UnauthorizedException('Unable to verify token');
-            }
-
-            return $decodedToken;
+            return (new Parser())->parse($token);
         } catch (\Exception $e) {
-            throw new UnauthorizedException(sprintf(
-                'Unable to decode token %s',
-                $token
-            ));
+            throw new UnauthorizedException(
+                sprintf('Unable to decode token %s', $token),
+                null,
+                $e
+            );
         }
     }
 
@@ -165,8 +191,27 @@ class JsonWebTokenAuthenticator implements AuthenticatorInterface
      * @param Token $token
      * @return bool
      */
-    private function isVerified(Token $token)
+    private function verifyToken(Token $token)
     {
-        return $token->verify($this->signer, $this->secret);
+        try {
+            $result = $token->verify($this->signer, $this->secret);
+        } catch (\BadMethodCallException $e) {
+            throw new UnauthorizedException('Unable to verify token', null, $e);
+        }
+
+        if (false === $result) {
+            throw new UnauthorizedException('Unable to verify token');
+        }
+    }
+
+    /**
+     * @param Token $token
+     * @return bool
+     */
+    private function validateToken(Token $token)
+    {
+        if (false === $token->validate($this->validationData)) {
+            throw new UnauthorizedException('Unable to validate token');
+        }
     }
 }
